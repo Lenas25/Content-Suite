@@ -187,3 +187,25 @@ Cada llamada LLM, recuperación RAG y auditoría de imagen genera una traza en L
 - input/output de cada generation
 
 Acceder al proyecto en `https://us.cloud.langfuse.com` con las credenciales del `.env`.
+
+### Trazas públicas de la demo
+
+Los siguientes links son trazas reales del flujo end-to-end con el producto **Frescavena Premium**. No requieren cuenta de Langfuse para ser consultados.
+
+| #   | Módulo                | Acción                                | Trace name              | Link                                                                                                                                                                                                                              |
+| --- | --------------------- | ------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | I — Brand DNA         | Generar manual de marca               | `brand-dna-generate`    | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/5a50fb348adbd4e62d6c1647ea61ff14?observation=ea2559a8456ac2c7&timestamp=2026-05-04T21:38:48.579Z&traceId=5a50fb348adbd4e62d6c1647ea61ff14)      |
+| 2   | I — Brand DNA         | Guardar manual + indexar RAG          | `brand-dna-save-rag`    | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/3278953dd951974fa414c3294df0fe7f?observation=16aaeb3a87b94fca&timestamp=2026-05-04T21:39:20.442Z&traceId=3278953dd951974fa414c3294df0fe7f)      |
+| 3   | II — Creative Engine  | Generar descripción de producto       | `content-generate`      | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/ed70f51bd26d77105d8a87190aa3e262?observation=eecafda0a2a2dbfd&timestamp=2026-05-04T21%3A42%3A17.467Z&traceId=ed70f51bd26d77105d8a87190aa3e262)  |
+| 4   | II — Creative Engine  | Generar guión de video                | `content-generate`      | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/3934fe54d9b130e2a2754d8060314379?observation=5619feb72ebdf994&timestamp=2026-05-04T21:44:27.490Z&traceId=3934fe54d9b130e2a2754d8060314379)      |
+| 5   | II — Creative Engine  | Generar prompt de imagen              | `content-generate`      | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/eda5acd6751f411dde60de490855f67e?observation=8b42eb3029fc6897&timestamp=2026-05-04T21:46:42.243Z&traceId=eda5acd6751f411dde60de490855f67e)      |
+| 6   | III — Governance      | Aprobar contenido (Aprobador A)       | `content-status-change` | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/2d2e0bc8faefc9fb81f9164c7b00725e?observation=0012f18ca9f31d90&timestamp=2026-05-04T21:48:07.177Z&traceId=2d2e0bc8faefc9fb81f9164c7b00725e)      |
+| 7   | III — Governance      | Auditar imagen — caso aprobado        | `multimodal-audit`      | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/105ada96c652043db73e4ae20c7d0d1b?observation=7ef8291c2aecc50a&timestamp=2026-05-04T21%3A51%3A43.828Z&traceId=105ada96c652043db73e4ae20c7d0d1b)  |
+| 8   | III — Governance      | Auditar imagen — caso rechazado       | `multimodal-audit`      | [ver trace](https://us.cloud.langfuse.com/project/cmoqmdkdp0d62ad06jegzfvb7/traces/76cb1f41491ab9cc4ca6eca84f09d662?observation=72ffd326802b52a2&timestamp=2026-05-04T21:53:45.795Z&traceId=76cb1f41491ab9cc4ca6eca84f09d662)      |
+
+**Qué inspeccionar en cada trace:**
+
+- **#1, #3, #4, #5** — el `input` muestra el prompt completo enviado al LLM y el `output` la respuesta. En #3-#5, abrí el span `hybrid-rag-retrieval` para ver `vector_rank`, `fts_rank` y `rrf_score` por chunk recuperado.
+- **#2** — el span `rag-indexing` muestra cuántos chunks se generaron y el manual completo indexado.
+- **#6** — la metadata muestra el `user_id: aprobador_a`, el `content_id` y el cambio de estado (RBAC en acción).
+- **#7 y #8** — el span `gemini-vision-audit` muestra el structured output de Gemini con cada `check` (categoría, severidad, detalle). El #8 demuestra detección automática de violación de manual.
