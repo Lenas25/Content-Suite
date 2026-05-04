@@ -1,4 +1,4 @@
-# Content Suite — Reto Técnico Alicorp
+# Content Suite — Reto Técnico
 
 Plataforma de consistencia de marca con tres módulos funcionales: generación de manuales de marca, motor creativo con RAG híbrido y auditoría multimodal de imágenes.
 
@@ -82,13 +82,13 @@ content-suite/
 │   ├── requirements.txt         # Dependencias (también en pyproject.toml para uv)
 │   ├── supabase_setup.sql       # Schema completo — ejecutar en Supabase una vez
 │   ├── routers/
-│   │   ├── auth.py              # POST /auth/login · JWT con 3 roles
-│   │   ├── brand.py             # POST /brand/generate · /brand/save · GET /brand/manuals
-│   │   ├── content.py           # POST /content/generate · GET /content · PATCH /content/{id}/status
-│   │   └── audit.py             # POST /audit/image · GET /audit/logs
+│   │   ├── auth.py              # POST /auth/login + JWT con 3 roles
+│   │   ├── brand.py             # POST /brand/generate + /brand/save + GET /brand/manuals
+│   │   ├── content.py           # POST /content/generate + GET /content + PATCH /content/{id}/status
+│   │   └── audit.py             # POST /audit/image + GET /audit/logs
 │   ├── services/
-│   │   ├── llm.py               # Cadena GLM → Groq (async)
-│   │   ├── rag.py               # embed_text · chunk_manual · retrieve_context (hybrid)
+│   │   ├── llm.py               # Cadena GLM o Groq (async)
+│   │   ├── rag.py               # embed_text + chunk_manual + retrieve_context (hybrid)
 │   │   ├── vision.py            # audit_image_with_gemini (structured output)
 │   │   ├── supabase_client.py   # Singleton AsyncClient
 │   │   ├── google_client.py     # Singleton genai.Client
@@ -103,9 +103,9 @@ content-suite/
         │   └── status.ts        # Mappers de status backend ↔ UI
         └── components/content-suite/
             ├── shared/          # BrandSelector (compartido entre módulos)
-            ├── creator/         # BrandDnaArchitect · CreativeEngine · MyGenerations
-            ├── approver-a/      # ReviewInbox · History
-            └── approver-b/      # VisualAudit · AuditHistory
+            ├── creator/         # BrandDnaArchitect + CreativeEngine + MyGenerations
+            ├── approver-a/      # ReviewInbox + History
+            └── approver-b/      # VisualAudit + AuditHistory
 ```
 
 ---
@@ -186,4 +186,4 @@ Cada llamada LLM, recuperación RAG y auditoría de imagen genera una traza en L
 - chunks recuperados con `vector_rank`, `fts_rank` y `rrf_score`
 - input/output de cada generation
 
-Acceder al proyecto en `https://cloud.langfuse.com` con las credenciales del `.env`.
+Acceder al proyecto en `https://us.cloud.langfuse.com` con las credenciales del `.env`.
