@@ -227,23 +227,27 @@ async def generate_content(
         )
     product_name = manual_row.data["product_name"]
 
-    # 2. Hybrid retrieval — query balanceada: identidad + público + tono + restricciones
-    # Importante: un mix de keywords descriptivos Y restrictivos para que el RAG traiga
-    # tanto chunks informativos (Resumen, Pilares, Público) como disciplinarios (Restricciones, Tono).
-    base_query = "identidad marca pilares mensaje público objetivo tono voz restricciones "
+    # 2. Hybrid retrieval — DOS queries separadas:
+    #    - embed_query (vector): keywords + producto + contexto libre del usuario.
+    #      El modelo de embeddings aprovecha el lenguaje natural completo.
+    #    - fts_keywords (BM25): SOLO keywords curados que sabemos están en el manual.
+    #      Limpio, sin guiones ni inglés, sin texto del usuario que pueda romper el match.
+    base_keywords = "identidad marca pilares mensaje público objetivo tono voz restricciones"
     if body.content_type == "prompt_imagen":
-        extra_query = "restricciones visuales imágenes logos colores contextos prohibidos "
+        extra_keywords = "restricciones visuales imágenes logos colores contextos prohibidos"
     elif body.content_type == "guion_video":
-        extra_query = "escenas video contexto visual restricciones visuales "
+        extra_keywords = "escenas video visual restricciones audiovisual"
     else:
-        extra_query = "ficha producto e-commerce ejemplos on-brand texto "
+        extra_keywords = "ficha producto descripción ejemplos texto"
 
-    rag_query = (
-        f"{base_query}{extra_query}"
-        f"{product_name} {body.content_type} {body.additional_context}"
+    fts_keywords = f"{base_keywords} {extra_keywords} {product_name}"
+    embed_query = f"{fts_keywords} {body.additional_context}".strip()
+
+    retrieved = await _retrieve_for_generation(
+        query=embed_query,
+        fts_keywords=fts_keywords,
+        manual_id=body.manual_id,
     )
-
-    retrieved = await _retrieve_for_generation(query=rag_query, manual_id=body.manual_id)
     if not retrieved:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -322,12 +326,23 @@ Devolvé SOLO el contenido pedido. Sin notas, sin disclaimers, sin meta-comentar
 
 
 @observe(name="hybrid-rag-retrieval")
-async def _retrieve_for_generation(query: str, manual_id: str) -> list[dict]:
+async def _retrieve_for_generation(
+    query: str,
+    manual_id: str,
+    *,
+    fts_keywords: str | None = None,
+) -> list[dict]:
     """Observando para que el span queda anidado dentro de content-generate en Langfuse."""
-    chunks = await retrieve_context(query, manual_id, k=4)
+    chunks = await retrieve_context(
+        query, manual_id, fts_keywords=fts_keywords, k=4
+    )
     langfuse = get_client()
     langfuse.update_current_span(
-        input={"query": query, "manual_id": manual_id},
+        input={
+            "query": query,
+            "fts_keywords": fts_keywords,
+            "manual_id": manual_id,
+        },
         output={
             "chunks_retrieved": len(chunks),
             "chunks": [

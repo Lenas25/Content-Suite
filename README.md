@@ -8,18 +8,18 @@ Plataforma de consistencia de marca con tres módulos funcionales: generación d
 
 ## Acceso a la aplicación
 
-| URL | Descripción |
-|-----|-------------|
-| `https://<frontend-url>` | Aplicación web (Next.js) |
-| `https://<backend-url>` | API REST (FastAPI) · `/docs` para Swagger |
+| URL                                       | Descripción                               |
+| ----------------------------------------- | ----------------------------------------- |
+| `https://content-suite-neon.vercel.app`   | Aplicación web (Next.js)                  |
+| `https://content-suite-mmh2.onrender.com` | API REST (FastAPI) · `/docs` para Swagger |
 
 ### Credenciales de los 3 roles
 
-| Rol | Usuario | Contraseña |
-|-----|---------|------------|
-| Creador | `creador` | *(ver .env — `CREADOR_PASSWORD`)* |
-| Aprobador A | `aprobador_a` | *(ver .env — `APROBADOR_A_PASSWORD`)* |
-| Aprobador B | `aprobador_b` | *(ver .env — `APROBADOR_B_PASSWORD`)* |
+| Rol         | Usuario       | Contraseña                            |
+| ----------- | ------------- | ------------------------------------- |
+| Creador     | `creador`     | _(ver .env — `CREADOR_PASSWORD`)_     |
+| Aprobador A | `aprobador_a` | _(ver .env — `APROBADOR_A_PASSWORD`)_ |
+| Aprobador B | `aprobador_b` | _(ver .env — `APROBADOR_B_PASSWORD`)_ |
 
 ### Observabilidad en Langfuse
 
@@ -31,12 +31,15 @@ Proyecto Langfuse con trazas en vivo de todas las llamadas LLM y RAG:
 ## Módulos
 
 ### Módulo I — Brand DNA Architect (`/brand`)
+
 El **Creador** ingresa un brief (nombre del producto, tono, público, valores, restricciones). El sistema genera un manual de marca completo en Markdown usando el LLM y lo indexa en Supabase con embeddings de Google (`gemini-embedding-001`, dim=768) para RAG.
 
 ### Módulo II — Creative Engine (`/content`)
+
 Genera descripciones de producto, guiones de video y prompts de imagen. Usa **Hybrid Search** (pgvector coseno + BM25 con RRF) sobre el manual de marca seleccionado para que el contenido esté alineado con el tono y las restricciones de la marca.
 
 ### Módulo III — Governance (`/audit`)
+
 El **Aprobador A** revisa y aprueba/rechaza el contenido generado. El **Aprobador B** sube una imagen y el sistema la audita contra el manual de marca usando **Gemini Vision** (`gemini-2.5-flash-lite`) con structured output. Todas las auditorías quedan registradas en `audit_logs`.
 
 ---
@@ -134,6 +137,7 @@ npm run dev
 ```
 
 Crear `frontend/.env.local`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
@@ -141,7 +145,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ### Variables de entorno (backend/.env)
 
 ```env
-# LLM principal (opcional — si no está, usa Groq)
+# LLM principal (opcional, si no está, usa Groq)
 GLM_API_KEY=
 GLM_MODEL=glm-4-flash
 GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
@@ -177,6 +181,7 @@ Ejecutar `backend/supabase_setup.sql` completo en el SQL Editor de Supabase. Cre
 ## Observabilidad
 
 Cada llamada LLM, recuperación RAG y auditoría de imagen genera una traza en Langfuse con:
+
 - `model_used` (qué LLM respondió)
 - chunks recuperados con `vector_rank`, `fts_rank` y `rrf_score`
 - input/output de cada generation

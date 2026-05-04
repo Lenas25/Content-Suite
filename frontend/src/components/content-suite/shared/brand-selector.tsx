@@ -61,12 +61,17 @@ export function BrandSelector({ value, onChange, hint }: BrandSelectorProps) {
               className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Selecciona una marca...</option>
-              {manuals.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.product_name}
-                  {m.tone ? ` — ${m.tone.slice(0, 40)}` : ""}
-                </option>
-              ))}
+              {manuals.map((m) => {
+                const tone = m.tone?.trim() ?? "";
+                const tonePreview =
+                  tone.length > 60 ? `${tone.slice(0, 60).trimEnd()}…` : tone;
+                return (
+                  <option key={m.id} value={m.id}>
+                    {m.product_name}
+                    {tonePreview ? ` — ${tonePreview}` : ""}
+                  </option>
+                );
+              })}
             </select>
 
             {selected && (
